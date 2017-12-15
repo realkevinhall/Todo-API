@@ -24,7 +24,6 @@ app.get('/todos', function(req, res) {
   } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
     filteredTodos = _.where(filteredTodos, {completed: false});
   }
-  
   if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
     filteredTodos = _.filter(filteredTodos, function(todo) {
       return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
@@ -35,13 +34,15 @@ app.get('/todos', function(req, res) {
 // GET /todos/:id
 app.get('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
-  
-  if (matchedTodo) {
-    res.json(matchedTodo);
-  } else {
-    res.status(404).send();  
-  }
+  db.todo.findById(todoId).then(function(todo) {
+    if (!!todo) { // Makes todo a truthy value, if todo is NULL ! makes it true, !! makes it false
+      res.json(todo.toJSON());
+    } else {
+      res.status(404).send();
+    }
+  }, function (e) {
+    res.status(500).send(); // 500 is issue with server
+  });
 });
 // POST /todos
 app.post('/todos', function(req, res) {
@@ -52,19 +53,6 @@ app.post('/todos', function(req, res) {
     res.status(400).json(e);
   })
 });
-//  if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-//    return res.status(400).send();
-//  }
-//  
-//  body.description = body.description.trim();
-//  body.id = todoNextId++;
-//  
-//  todos.push(body);
-//  res.json(body);
-//});
-
-
-
 // DELETE /todos/:id
 app.delete('/todos/:id', function(req, res) {
   var todoId = parseInt(req.params.id, 10);
