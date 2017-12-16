@@ -88,6 +88,7 @@ db.user.findByToken = function (token) {
     }
   });
 }
-
+db.todo.belongsTo(db.user);
+db.user.hasMany(db.todo);
 
 module.exports = db;
